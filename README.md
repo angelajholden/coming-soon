@@ -1,14 +1,15 @@
-# Deploy a Website w/Digital Ocean 💧
+# Deploy a Website with Digital Ocean 💧 LAMP + rsync + DNS Setup
 
-## LAMP + rsync + DNS Setup
+## Login + Setup
 
-### 1. SSH in as root
+### SSH in as root
 
 ```zsh
-ssh root@<IP>
+# Login as root
+ssh root@167.99.56.29
 ```
 
-### 2. Update + upgrade first
+### Update + upgrade first
 
 ```zsh
 apt update && apt upgrade -y
@@ -17,20 +18,19 @@ apt update && apt upgrade -y
 reboot
 
 # reconnect:
-ssh root@<IP>
+ssh root@167.99.56.29
 ```
 
-### 3. Check What’s Installed
+### Check what’s installed
 
 ```zsh
 apache2 -v
 mysql --version
 php -v
-ufw status
 systemctl status apache2
 ```
 
-### 4. Create your non-root sudo user
+### Create your non-root sudo user
 
 ```zsh
 adduser angela
@@ -40,14 +40,19 @@ usermod -aG sudo angela
 ### 5. Copy root’s authorized key to the new user so you can SSH without passwords
 
 ```zsh
+# make the .ssh
 mkdir -p /home/angela/.ssh
+
+# copy the keys from root
 cp -a /root/.ssh/authorized_keys /home/angela/.ssh/
+
+# change the ownership + read/write/execute permissions
 chown -R angela:angela /home/angela/.ssh
 chmod 700 /home/angela/.ssh
 chmod 600 /home/angela/.ssh/authorized_keys
 ```
 
-### 6. Now harden SSH
+### Disable root Login with SSH
 
 ```zsh
 nano /etc/ssh/sshd_config
@@ -57,13 +62,13 @@ nano /etc/ssh/sshd_config
 systemctl restart ssh
 ```
 
-### 7. Reconnect as the new user
+### Reconnect as the new user
 
 ```zsh
-ssh angela@<IP>
+ssh angela@167.99.56.29
 ```
 
-### 8. Deploy via rsync from your local machine
+### Deploy via rsync from your local machine
 
 #### Just remember that the trailing slash in your local directory path matters:
 
@@ -71,28 +76,24 @@ ssh angela@<IP>
 -   Without `/`, it would nest the folder inside (`/var/www/html/coming-soon/`).
 
 ```zsh
-# Rsync flags: -a archive, -z compress, -P progress/partial, --delete keeps remote in sync.
-rsync -avz --progress --delete \
-  --exclude '.git' \
-  --exclude '.gitignore' \
-  --exclude '.github' \
-  --exclude '.DS_Store' \
-  --exclude 'README.md' \
-  --exclude 'LICENSE.md' \
-  /Users/angelajholden/Projects/coming-soon/ \
-  root@<IP>:/var/www/html/
+# change the ownership before rsync
+sudo chown -R angela:angela /var/www/html
 
-# Then on the server, set sane ownership/permissions:
+# rsync flags: -a archive, -z compress, -P progress/partial, --delete keeps remote in sync.
+rsync -avz --progress --delete --exclude '.git' --exclude '.gitignore' --exclude '.github' --exclude '.DS_Store' --exclude 'README.md' --exclude 'LICENSE.md' /Users/angelajholden/Projects/coming-soon/ angela@167.99.56.29:/var/www/html/
+
+# after rsync, reset ownership/permissions:
 sudo chown -R www-data:www-data /var/www/html
 sudo find /var/www/html -type d -exec chmod 755 {} \;
 sudo find /var/www/html -type f -exec chmod 644 {} \;
 ```
 
-### 9. DNS: point your domain
+### DNS: point your domain
 
 1. Do this with the domain registrar.
-2. Point the domain A Record to the IP address.
-3. Add the domain name to Digital Ocean.
+2. Create an A Record to the IP address.
+3. Create a CNAME for 'www' with a value or target of 'fiberandkraft.com'.
+4. Add the domain name to Digital Ocean.
 
 ```zsh
 ssh angela@fiberandkraft.com
@@ -100,13 +101,14 @@ ssh angela@fiberandkraft.com
 
 ## Let's Encrypt
 
-### 1. Make sure DNS is ready
+### Make sure DNS is ready
 
 ```zsh
 ping fiberandkraft.com
+# crtl + c to quit
 ```
 
-### 2. Check that Certbot is installed
+### Check that Certbot is installed
 
 ```zsh
 # The 1-Click LAMP image should already have it
@@ -117,7 +119,11 @@ certbot --version
 sudo apt install certbot python3-certbot-apache -y
 ```
 
-### 3. Request and install the certificate
+### Request and install the certificate
+
+We have to install an SSL certificate on both the root and www, even if we're just doing a redirect to the root.
+
+Browsers are checking the domain on port 443 first, and if the SSL/TLS handshake fails (no certificate) then it can't complete the redirect. Make sure you install the SSL certificate on both versions of the domain. It's free!
 
 ```zsh
 # Run Certbot’s Apache plugin:
@@ -128,49 +134,21 @@ sudo certbot --apache -d fiberandkraft.com -d www.fiberandkraft.com
 
 1. Ask for your email (for renewal notices)
 2. Ask to agree to the terms
-3. Detect your domain(s) from Apache config — you can select your “coming soon” site
-4. Automatically edit Apache to use HTTPS
-5. Reload Apache
+3. Automatically edit Apache to use HTTPS
+4. Reload Apache
 
 ```zsh
 # When it’s done, you’ll see something like:
 Congratulations! Your certificate and chain have been saved at:
-/etc/letsencrypt/live/demo.yourdomain.com/fullchain.pem
+/etc/letsencrypt/live/fiberandkraft.com/fullchain.pem
 ```
 
-#### Certbot will also:
-
--   Request certificates for both the root domain and 'www'
--   Add the redirect automatically so www → root over HTTPS
-
-```zsh
-# Then you can confirm the redirect behavior later in your browser or by running:
-curl -I http://www.fiberandkraft.com
-
-# You should see:
-HTTP/1.1 301 Moved Permanently
-Location: https://fiberandkraft.com/
-```
-
-### 4. Test the result
-
-```zsh
-# Open your site in the browser
-https://demo.yourdomain.com
-```
-
-🔒 You should see the lock icon and your site.
-
-```zsh
-# Or test in terminal
-curl -I https://fiberandkraft.com
-# Look for HTTP/2 200 — that means it’s serving over HTTPS.
-```
-
-### 5. Auto-renewal check
+### Auto-renewal check
 
 ```zsh
 # Certbot installs a renewal timer automatically.
+# It checks twice per day, ~12 hours
+# If it's within 30 days of renewal, it renews automatically
 # Verify it
 sudo systemctl list-timers | grep certbot
 
@@ -181,17 +159,7 @@ sudo certbot renew --dry-run
 Congratulations, all renewals succeeded.
 ```
 
-### 6. Optional hardening
-
--   Force HTTPS redirect (Certbot usually adds this)
--   Check firewall allows port 443
-
-```zsh
-sudo ufw allow 443
-sudo ufw status
-```
-
-### 7. Verify which domains are active
+### 5. Verify which domains are active
 
 ```zsh
 sudo certbot certificates
@@ -200,6 +168,96 @@ sudo certbot certificates
 Certificate Name: fiberandkraft.com
 Domains: fiberandkraft.com www.fiberandkraft.com
 Expiry Date: 2026-01-20
+```
+
+## Edit the Apache Virtual Host Files
+
+### Port 80 VHost
+
+Add this INSIDE `<VirtualHost *:80> </VirtualHost>`, at the top of the page.
+
+```zsh
+ServerName fiberandkraft.com
+ServerAlias www.fiberandkraft.com
+Redirect 301 / https://fiberandkraft.com/
+```
+
+Comment out the three rewrite lines at the bottom:
+
+```zsh
+# RewriteEngine on
+# RewriteCond %{SERVER_NAME} =www.fiberandkraft.com [OR]
+# RewriteCond %{SERVER_NAME} =fiberandkraft.com
+# RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
+```
+
+### Port 443 VHost
+
+The port 443 vhost file should look like this:
+
+```zsh
+<IfModule mod_ssl.c>
+<VirtualHost *:443>
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/html
+    ServerName fiberandkraft.com
+    ServerAlias www.fiberandkraft.com
+
+    RewriteEngine On
+    RewriteCond %{HTTP_HOST} ^www\.fiberandkraft\.com$ [NC]
+    RewriteRule ^ https://fiberandkraft.com%{REQUEST_URI} [R=301,L]
+
+    <Directory /var/www/html/>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    <IfModule mod_dir.c>
+        DirectoryIndex index.php index.pl index.cgi index.html index.xhtml index.htm
+    </IfModule>
+
+    Include /etc/letsencrypt/options-ssl-apache.conf
+    SSLCertificateFile /etc/letsencrypt/live/fiberandkraft.com/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/fiberandkraft.com/privkey.pem
+</VirtualHost>
+</IfModule>
+```
+
+### Make sure the rewite is enabled and reload
+
+```zsh
+sudo a2enmod rewrite
+sudo systemctl reload apache2
+```
+
+### Test the redirects
+
+```zsh
+# Then you can confirm the redirect behavior later in your browser or by running:
+curl -I http://fiberandkraft.com
+curl -I http://www.fiberandkraft.com
+curl -I https://fiberandkraft.com
+curl -I https://www.fiberandkraft.com
+
+# You should see:
+HTTP/1.1 301 Moved Permanently
+Location: https://fiberandkraft.com/
+```
+
+### Test the result
+
+🔒 You should see the lock icon and your site.
+
+```zsh
+# Open your site in the browser
+http://fiberandkraft.com
+http://www.fiberandkraft.com
+https://fiberandkraft.com
+https://www.fiberandkraft.com
 ```
 
 ## Links
