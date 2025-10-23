@@ -1,4 +1,4 @@
-# Deploy a Website with Digital Ocean 💧 LAMP + rsync + DNS Setup
+# How to Deploy a Website to Digital Ocean 💧 LAMP + rsync + DNS Setup
 
 ## Login + Setup
 
