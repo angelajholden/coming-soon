@@ -30,6 +30,17 @@ php -v
 systemctl status apache2
 ```
 
+### Check the Firewall
+
+```zsh
+sudo ufw status
+# if inactive
+sudo ufw allow OpenSSH
+sudo ufw allow 80
+sudo ufw allow 443
+sudo ufw enable
+```
+
 ### Create your non-root sudo user
 
 ```zsh
@@ -59,7 +70,7 @@ nano /etc/ssh/sshd_config
 # Set/confirm:
 #   PermitRootLogin no
 #   PasswordAuthentication no
-systemctl restart ssh
+sudo systemctl reload ssh
 ```
 
 ### DNS: point your domain
@@ -113,7 +124,7 @@ sudo chmod g+s /var/www/html
 
 ```zsh
 # rsync flags: -a archive, -z compress, -P progress/partial, --delete keeps remote in sync.
-rsync -avz --progress --delete --exclude '.git' --exclude '.gitignore' --exclude '.github' --exclude '.DS_Store' --exclude 'README.md' --exclude 'LICENSE.md' /Users/angelajholden/Projects/coming-soon/ angela@<IP>:/var/www/html/
+rsync -avz --progress --delete --exclude '.git' --exclude '.gitignore' --exclude '.github' --exclude '.DS_Store' --exclude 'README.md' --exclude 'LICENSE.md' /Users/angelajholden/Projects/coming-soon/ angela@fiberandkraft.com:/var/www/html/
 
 # Just in case you need to reset ownership/permissions after rsync:
 sudo chown -R www-data:www-data /var/www/html
@@ -163,6 +174,20 @@ sudo certbot --apache -d fiberandkraft.com -d www.fiberandkraft.com
 # When it’s done, you’ll see something like:
 Congratulations! Your certificate and chain have been saved at:
 /etc/letsencrypt/live/fiberandkraft.com/fullchain.pem
+```
+
+### Enable SSL site if needed
+
+```zsh
+sudo a2ensite 000-default-le-ssl.conf
+sudo systemctl reload apache2
+```
+
+### Run this if in a redirect loop
+
+```zsh
+sudo a2enmod ssl
+sudo systemctl reload apache2
 ```
 
 ### Auto-renewal check
@@ -249,7 +274,7 @@ The port 443 vhost file should look like this:
 </IfModule>
 ```
 
-### Make sure the rewite is enabled and reload
+### Make sure the rewite module is enabled and reload Apache
 
 ```zsh
 sudo a2enmod rewrite
