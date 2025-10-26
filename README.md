@@ -232,6 +232,10 @@ Expiry Date: 2026-01-20
 
 ### Port 80 VHost
 
+```zsh
+sudo nano /etc/apache2/sites-available/000-default.conf
+```
+
 Add this INSIDE `<VirtualHost *:80> </VirtualHost>`, at the top of the page.
 
 ```zsh
@@ -250,6 +254,10 @@ Comment out the three rewrite lines at the bottom:
 ```
 
 ### Port 443 VHost
+
+```zsh
+sudo nano /etc/apache2/sites-available/000-default-le-ssl.conf
+```
 
 The port 443 vhost file should look like this:
 
@@ -289,6 +297,10 @@ The port 443 vhost file should look like this:
 
 ```zsh
 sudo a2enmod rewrite
+sudo systemctl reload apache2
+
+# If you want to be extra sure the SSL vhost is active:
+sudo a2ensite 000-default-le-ssl.conf
 sudo systemctl reload apache2
 ```
 
