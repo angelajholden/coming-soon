@@ -1,6 +1,15 @@
 # How to Deploy a Website to Digital Ocean 💧 LAMP + rsync + DNS Setup
 
-## Login + Setup
+## How To Use the LAMP 1-Click Install on DigitalOcean
+
+https://www.digitalocean.com/community/tutorials/how-to-use-the-lamp-1-click-install-on-digitalocean
+
+### DNS: point your domain
+
+1. Do this with the domain registrar.
+2. Create an A Record to the IP address.
+3. Create a CNAME for 'www' with a value or target of 'fiberandkraft.com'.
+4. Add the domain name to Digital Ocean.
 
 ### SSH in as root
 
@@ -32,13 +41,22 @@ systemctl status apache2
 
 ### Check the Firewall
 
+This is the expected output:
+
+| To               | Action | From          |
+| ---------------- | ------ | ------------- |
+| 22/tcp           | LIMIT  | Anywhere      |
+| Apache Full      | ALLOW  | Anywhere      |
+| 22/tcp (v6)      | LIMIT  | Anywhere (v6) |
+| Apache Full (v6) | ALLOW  | Anywhere (v6) |
+
 ```zsh
-sudo ufw status
+ufw status
 # if inactive
-sudo ufw allow OpenSSH
-sudo ufw allow 80
-sudo ufw allow 443
-sudo ufw enable
+ufw allow OpenSSH
+ufw allow 80
+ufw allow 443
+ufw enable
 ```
 
 ### Create your non-root sudo user
@@ -70,15 +88,8 @@ nano /etc/ssh/sshd_config
 # Set/confirm:
 #   PermitRootLogin no
 #   PasswordAuthentication no
-sudo systemctl reload ssh
+systemctl reload ssh
 ```
-
-### DNS: point your domain
-
-1. Do this with the domain registrar.
-2. Create an A Record to the IP address.
-3. Create a CNAME for 'www' with a value or target of 'fiberandkraft.com'.
-4. Add the domain name to Digital Ocean.
 
 ### Reconnect as the new user
 
@@ -124,7 +135,7 @@ sudo chmod g+s /var/www/html
 
 ```zsh
 # rsync flags: -a archive, -z compress, -P progress/partial, --delete keeps remote in sync.
-rsync -avz --progress --delete --exclude '.git' --exclude '.gitignore' --exclude '.github' --exclude '.DS_Store' --exclude 'README.md' --exclude 'LICENSE.md' /Users/angelajholden/Projects/coming-soon/ angela@fiberandkraft.com:/var/www/html/
+rsync -avz --progress --delete --exclude '.git' --exclude '.gitignore' --exclude '.github' --exclude '.DS_Store' --exclude 'README.md' --exclude 'LICENSE.md' /Users/angelajholden/Projects/knit-picks-clone/ angela@fiberandkraft.com:/var/www/html/
 
 # Just in case you need to reset ownership/permissions after rsync:
 sudo chown -R www-data:www-data /var/www/html
