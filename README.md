@@ -6,7 +6,7 @@
 
 ```zsh
 # Login as root
-ssh root@167.99.56.29
+ssh root@<IP>
 ```
 
 ### Update + upgrade first
@@ -18,7 +18,7 @@ apt update && apt upgrade -y
 reboot
 
 # reconnect:
-ssh root@167.99.56.29
+ssh root@<IP>
 ```
 
 ### Check what’s installed
@@ -37,7 +37,7 @@ adduser angela
 usermod -aG sudo angela
 ```
 
-### 5. Copy root’s authorized key to the new user so you can SSH without passwords
+### Copy root’s authorized key to the new user so you can SSH without passwords
 
 ```zsh
 # make the .ssh
@@ -62,10 +62,46 @@ nano /etc/ssh/sshd_config
 systemctl restart ssh
 ```
 
+### DNS: point your domain
+
+1. Do this with the domain registrar.
+2. Create an A Record to the IP address.
+3. Create a CNAME for 'www' with a value or target of 'fiberandkraft.com'.
+4. Add the domain name to Digital Ocean.
+
 ### Reconnect as the new user
 
 ```zsh
-ssh angela@167.99.56.29
+ssh angela@fiberandkraft.com
+```
+
+### Add sudo user to the www-data group
+
+```zsh
+sudo usermod -aG www-data angela
+
+# logout + log back in for the group change to take effect
+exit
+ssh angela@fiberandkraft.com
+
+# confirm it worked
+groups
+
+# you should see
+angela sudo www-data
+```
+
+### Fix the permissions
+
+That 775 gives group write access, so angela (as part of the www-data group) can update files without breaking Apache ownership.
+
+```zsh
+sudo chown -R www-data:www-data /var/www/html
+sudo chmod -R 775 /var/www/html
+
+# If you want to make sure all future files keep that group:
+sudo chmod g+s /var/www/html
+# That sets the setgid bit, so any new files/folders inherit the www-data group automatically.
 ```
 
 ### Deploy via rsync from your local machine
@@ -76,27 +112,13 @@ ssh angela@167.99.56.29
 -   Without `/`, it would nest the folder inside (`/var/www/html/coming-soon/`).
 
 ```zsh
-# change the ownership before rsync
-sudo chown -R angela:angela /var/www/html
-
 # rsync flags: -a archive, -z compress, -P progress/partial, --delete keeps remote in sync.
-rsync -avz --progress --delete --exclude '.git' --exclude '.gitignore' --exclude '.github' --exclude '.DS_Store' --exclude 'README.md' --exclude 'LICENSE.md' /Users/angelajholden/Projects/coming-soon/ angela@167.99.56.29:/var/www/html/
+rsync -avz --progress --delete --exclude '.git' --exclude '.gitignore' --exclude '.github' --exclude '.DS_Store' --exclude 'README.md' --exclude 'LICENSE.md' /Users/angelajholden/Projects/coming-soon/ angela@<IP>:/var/www/html/
 
-# after rsync, reset ownership/permissions:
+# Just in case you need to reset ownership/permissions after rsync:
 sudo chown -R www-data:www-data /var/www/html
 sudo find /var/www/html -type d -exec chmod 755 {} \;
 sudo find /var/www/html -type f -exec chmod 644 {} \;
-```
-
-### DNS: point your domain
-
-1. Do this with the domain registrar.
-2. Create an A Record to the IP address.
-3. Create a CNAME for 'www' with a value or target of 'fiberandkraft.com'.
-4. Add the domain name to Digital Ocean.
-
-```zsh
-ssh angela@fiberandkraft.com
 ```
 
 ## Let's Encrypt
@@ -159,7 +181,7 @@ sudo certbot renew --dry-run
 Congratulations, all renewals succeeded.
 ```
 
-### 5. Verify which domains are active
+### Verify which domains are active
 
 ```zsh
 sudo certbot certificates
