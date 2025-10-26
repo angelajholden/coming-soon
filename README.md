@@ -4,12 +4,14 @@
 
 https://www.digitalocean.com/community/tutorials/how-to-use-the-lamp-1-click-install-on-digitalocean
 
-### DNS: point your domain
+## DNS: Point Your Domain
 
 1. Do this with the domain registrar.
 2. Create an A Record to the IP address.
 3. Create a CNAME for 'www' with a value or target of 'fiberandkraft.com'.
 4. Add the domain name to Digital Ocean.
+
+## Droplet Setup
 
 ### SSH in as root
 
@@ -52,6 +54,7 @@ This is the expected output:
 
 ```zsh
 ufw status
+
 # if inactive
 ufw allow OpenSSH
 ufw allow 80
