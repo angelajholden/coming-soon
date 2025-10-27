@@ -66,12 +66,12 @@ ufw enable
 
 You can leave the questions blank when creating a sudo user:
 
-Full Name []:
-Room Number []:
-Work Phone []:
-Home Phone []:
-Other []:
-Is this information correct? [Y/n]
+-   Full Name []:
+-   Room Number []:
+-   Work Phone []:
+-   Home Phone []:
+-   Other []:
+-   Is this information correct? [Y/n]
 
 ```zsh
 adduser angela
