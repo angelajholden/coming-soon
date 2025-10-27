@@ -155,7 +155,7 @@ sudo chmod g+s /var/www/html
 
 ```zsh
 # rsync flags: -a archive, -z compress, -P progress/partial, --delete keeps remote in sync.
-rsync -avz --progress --delete --exclude '.git' --exclude '.gitignore' --exclude '.github' --exclude '.DS_Store' --exclude 'README.md' --exclude 'LICENSE.md' /Users/angelajholden/Projects/knit-picks-clone/ angela@fiberandkraft.com:/var/www/html/
+rsync -avz --progress --delete --exclude '.git' --exclude '.gitignore' --exclude '.github' --exclude '.DS_Store' --exclude 'README.md' --exclude 'LICENSE.md' /Users/angelajholden/Projects/coming-soon/ angela@fiberandkraft.com:/var/www/html/
 
 # Just in case you need to reset ownership/permissions after rsync:
 sudo chown -R www-data:www-data /var/www/html
