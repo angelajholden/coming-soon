@@ -64,6 +64,15 @@ ufw enable
 
 ### Create your non-root sudo user
 
+You can leave the questions blank when creating a sudo user:
+
+Full Name []:
+Room Number []:
+Work Phone []:
+Home Phone []:
+Other []:
+Is this information correct? [Y/n]
+
 ```zsh
 adduser angela
 usermod -aG sudo angela
@@ -85,6 +94,14 @@ chmod 600 /home/angela/.ssh/authorized_keys
 ```
 
 ### Disable root Login with SSH
+
+To exit the nano editor and save:
+
+```zsh
+ctrl + x
+Y enter
+enter (again)
+```
 
 ```zsh
 nano /etc/ssh/sshd_config
@@ -247,7 +264,7 @@ ServerAlias www.fiberandkraft.com
 Redirect 301 / https://fiberandkraft.com/
 ```
 
-Comment out the three rewrite lines at the bottom:
+Comment out these four rewrite lines at the bottom of the file:
 
 ```zsh
 # RewriteEngine on
