@@ -41,6 +41,14 @@ php -v
 systemctl status apache2
 ```
 
+### MySQL root password
+
+If you’re deploying a WordPress or database-driven site, your MySQL root password is stored in `/root/.digitalocean_password` on your Droplet. I skipped this part since this demo was a static site deployment.
+
+```zsh
+nano /root/.digitalocean_password
+```
+
 ### Check the Firewall
 
 This is the expected output:
@@ -114,6 +122,32 @@ systemctl reload ssh
 ### Reconnect as the new user
 
 ```zsh
+ssh angela@fiberandkraft.com
+```
+
+### Possible Warning
+
+If you've used this domain on another server/IP, you might get this warning. You just need to delete the domain from your local `known_hosts` file.
+
+```zsh
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the ED25519 key sent by the remote host is
+SHA256:abc123abc123abc123abc123abc123abc123abc123abc123.
+Please contact your system administrator.
+Add correct host key in /Users/angelajholden/.ssh/known_hosts to get rid of this message.
+Offending ED25519 key in /Users/angelajholden/.ssh/known_hosts:29
+Host key for fiberandkraft.com has changed and you have requested strict checking.
+Host key verification failed.
+
+# remove the domain from your local known_hosts file
+ssh-keygen -R fiberandkraft.com
+
+# login again
 ssh angela@fiberandkraft.com
 ```
 
