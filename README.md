@@ -19,7 +19,7 @@ https://www.digitalocean.com/community/tutorials/how-to-use-the-lamp-1-click-ins
 # Login as root
 ssh root@<IP>
 
-# answer 'yes' to confirm known_host
+# answer 'yes' to confirm known_hosts
 yes
 ```
 
@@ -42,6 +42,17 @@ apache2 -v
 mysql --version
 php -v
 systemctl status apache2
+```
+
+### Nano text editor
+
+[Nano Shortcuts](https://www.nano-editor.org/dist/latest/cheatsheet.html)
+
+```zsh
+# To exit the nano editor and save:
+Ctrl + X
+Y enter
+enter (again)
 ```
 
 ### MySQL root password
@@ -105,14 +116,6 @@ chmod 600 /home/angela/.ssh/authorized_keys
 ```
 
 ### Disable root Login with SSH
-
-To exit the nano editor and save:
-
-```zsh
-ctrl + x
-Y enter
-enter (again)
-```
 
 ```zsh
 nano /etc/ssh/sshd_config
