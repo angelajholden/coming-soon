@@ -18,6 +18,9 @@ https://www.digitalocean.com/community/tutorials/how-to-use-the-lamp-1-click-ins
 ```zsh
 # Login as root
 ssh root@<IP>
+
+# answer 'yes' to confirm known_host
+yes
 ```
 
 ### Update + upgrade first
@@ -122,12 +125,14 @@ systemctl reload ssh
 ### Reconnect as the new user
 
 ```zsh
+# logout + log back in as sudo user
+exit
 ssh angela@fiberandkraft.com
 ```
 
 ### Possible Warning
 
-If you've used this domain on another server/IP, you might get this warning. You just need to delete the domain from your local `known_hosts` file.
+If you've used this domain on another server or IP, you might get this warning. You just need to delete the domain from your local `known_hosts` file.
 
 ```zsh
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
